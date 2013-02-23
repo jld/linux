@@ -553,9 +553,7 @@ static int dso__split_kallsyms(struct dso *dso, struct map *map,
 			*module++ = '\0';
 
 			if (strcmp(curr_map->dso->short_name, module)) {
-				if (curr_map != map &&
-				    dso->kernel == DSO_TYPE_GUEST_KERNEL &&
-				    machine__is_default_guest(machine)) {
+				if (curr_map != map) {
 					/*
 					 * We assume all symbols of a module are
 					 * continuous in * kallsyms, so curr_map
@@ -591,6 +589,8 @@ static int dso__split_kallsyms(struct dso *dso, struct map *map,
 		} else if (curr_map != map) {
 			char dso_name[PATH_MAX];
 			struct dso *ndso;
+
+			dso__set_loaded(curr_map->dso, curr_map->type);
 
 			if (count == 0) {
 				curr_map = map;
@@ -636,9 +636,7 @@ discard_symbol:		rb_erase(&pos->rb_node, root);
 		}
 	}
 
-	if (curr_map != map &&
-	    dso->kernel == DSO_TYPE_GUEST_KERNEL &&
-	    machine__is_default_guest(kmaps->machine)) {
+	if (curr_map != map) {
 		dso__set_loaded(curr_map->dso, curr_map->type);
 	}
 
