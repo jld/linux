@@ -49,7 +49,11 @@ unsigned long profile_pc(struct pt_regs *regs)
 	if (!in_lock_functions(regs->ARM_pc))
 		return regs->ARM_pc;
 
+#ifdef CONFIG_THUMB2_KERNEL
+	frame.r7 = regs->ARM_r7;
+#else
 	frame.fp = regs->ARM_fp;
+#endif
 	frame.sp = regs->ARM_sp;
 	frame.lr = regs->ARM_lr;
 	frame.pc = regs->ARM_pc;

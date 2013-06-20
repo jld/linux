@@ -74,7 +74,7 @@ struct unwind_ctrl_block {
 
 enum regs {
 #ifdef CONFIG_THUMB2_KERNEL
-	FP = 7,
+	R7 = 7,
 #else
 	FP = 11,
 #endif
@@ -317,8 +317,13 @@ static int unwind_exec_insn(struct unwind_ctrl_block *ctrl)
 		return -URC_FAILURE;
 	}
 
+#ifdef CONFIG_THUMB2_KERNEL
+	pr_debug("%s: r7 = %08lx sp = %08lx lr = %08lx pc = %08lx\n", __func__,
+		 ctrl->vrs[R7], ctrl->vrs[SP], ctrl->vrs[LR], ctrl->vrs[PC]);
+#else
 	pr_debug("%s: fp = %08lx sp = %08lx lr = %08lx pc = %08lx\n", __func__,
 		 ctrl->vrs[FP], ctrl->vrs[SP], ctrl->vrs[LR], ctrl->vrs[PC]);
+#endif
 
 	return URC_OK;
 }
@@ -349,7 +354,11 @@ int unwind_frame(struct stackframe *frame)
 		return -URC_FAILURE;
 	}
 
+#ifdef CONFIG_THUMB2_KERNEL
+	ctrl.vrs[R7] = frame->r7;
+#else
 	ctrl.vrs[FP] = frame->fp;
+#endif
 	ctrl.vrs[SP] = frame->sp;
 	ctrl.vrs[LR] = frame->lr;
 	ctrl.vrs[PC] = 0;
@@ -397,7 +406,11 @@ int unwind_frame(struct stackframe *frame)
 	if (frame->pc == ctrl.vrs[PC])
 		return -URC_FAILURE;
 
+#ifdef CONFIG_THUMB2_KERNEL
+	frame->r7 = ctrl.vrs[R7];
+#else
 	frame->fp = ctrl.vrs[FP];
+#endif
 	frame->sp = ctrl.vrs[SP];
 	frame->lr = ctrl.vrs[LR];
 	frame->pc = ctrl.vrs[PC];
@@ -416,20 +429,32 @@ void unwind_backtrace(struct pt_regs *regs, struct task_struct *tsk)
 		tsk = current;
 
 	if (regs) {
+#ifdef CONFIG_THUMB2_KERNEL
+		frame.r7 = regs->ARM_r7;
+#else
 		frame.fp = regs->ARM_fp;
+#endif
 		frame.sp = regs->ARM_sp;
 		frame.lr = regs->ARM_lr;
 		/* PC might be corrupted, use LR in that case. */
 		frame.pc = kernel_text_address(regs->ARM_pc)
 			 ? regs->ARM_pc : regs->ARM_lr;
 	} else if (tsk == current) {
+#ifdef CONFIG_THUMB2_KERNEL
+		frame.r7 = (unsigned long)__builtin_frame_address(0);
+#else
 		frame.fp = (unsigned long)__builtin_frame_address(0);
+#endif
 		frame.sp = current_sp;
 		frame.lr = (unsigned long)__builtin_return_address(0);
 		frame.pc = (unsigned long)unwind_backtrace;
 	} else {
 		/* task blocked in __switch_to */
+#ifdef CONFIG_THUMB2_KERNEL
+		frame.r7 = thread_saved_r7(tsk);
+#else
 		frame.fp = thread_saved_fp(tsk);
+#endif
 		frame.sp = thread_saved_sp(tsk);
 		/*
 		 * The function calling __switch_to cannot be a leaf function
