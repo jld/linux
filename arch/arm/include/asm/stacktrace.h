@@ -2,7 +2,11 @@
 #define __ASM_STACKTRACE_H
 
 struct stackframe {
+#ifdef CONFIG_THUMB2_KERNEL
+	unsigned long r7;
+#else
 	unsigned long fp;
+#endif
 	unsigned long sp;
 	unsigned long lr;
 	unsigned long pc;

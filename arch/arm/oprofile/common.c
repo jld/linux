@@ -107,7 +107,11 @@ static void arm_backtrace(struct pt_regs * const regs, unsigned int depth)
 
 	if (!user_mode(regs)) {
 		struct stackframe frame;
+#ifdef CONFIG_THUMB2_KERNEL
+		frame.r7 = regs->ARM_r7;
+#else
 		frame.fp = regs->ARM_fp;
+#endif
 		frame.sp = regs->ARM_sp;
 		frame.lr = regs->ARM_lr;
 		frame.pc = regs->ARM_pc;

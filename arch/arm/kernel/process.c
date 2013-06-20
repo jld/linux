@@ -408,7 +408,11 @@ unsigned long get_wchan(struct task_struct *p)
 	if (!p || p == current || p->state == TASK_RUNNING)
 		return 0;
 
+#ifdef CONFIG_THUMB2_KERNEL
+	frame.r7 = thread_saved_r7(p);
+#else
 	frame.fp = thread_saved_fp(p);
+#endif
 	frame.sp = thread_saved_sp(p);
 	frame.lr = 0;			/* recovered from the stack */
 	frame.pc = thread_saved_pc(p);

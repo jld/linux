@@ -606,7 +606,11 @@ perf_callchain_kernel(struct perf_callchain_entry *entry, struct pt_regs *regs)
 		return;
 	}
 
+#ifdef CONFIG_THUMB2_KERNEL
+	fr.r7 = regs->ARM_r7;
+#else
 	fr.fp = regs->ARM_fp;
+#endif
 	fr.sp = regs->ARM_sp;
 	fr.lr = regs->ARM_lr;
 	fr.pc = regs->ARM_pc;
