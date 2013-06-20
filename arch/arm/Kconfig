@@ -270,6 +270,9 @@ config GENERIC_BUG
 	def_bool y
 	depends on BUG
 
+config SCHED_OMIT_FRAME_POINTER
+       def_bool y
+
 source "init/Kconfig"
 
 source "kernel/Kconfig.freezer"
