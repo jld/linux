@@ -44,6 +44,6 @@ copy_from_user_nmi(void *to, const void __user *from, unsigned long n)
 
 	} while (len < n);
 
-	return len;
+	return n - len;
 }
 EXPORT_SYMBOL_GPL(copy_from_user_nmi);

@@ -729,10 +729,8 @@ static int intel_pmu_pebs_fixup_ip(struct pt_regs *regs)
 
 		old_to = to;
 		if (!kernel_ip(ip)) {
-			int bytes, size = MAX_INSN_SIZE;
-
-			bytes = copy_from_user_nmi(buf, (void __user *)to, size);
-			if (bytes != size)
+			if (copy_from_user_nmi(buf, (void __user *)to,
+					       MAX_INSN_SIZE))
 				return 0;
 
 			kaddr = buf;

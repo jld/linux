@@ -81,6 +81,7 @@ static inline unsigned long perf_data_size(struct ring_buffer *rb)
 	return rb->nr_pages << (PAGE_SHIFT + page_order(rb));
 }
 
+/* func_name and memcpy_func return the number of bytes not copied */
 #define DEFINE_OUTPUT_COPY(func_name, memcpy_func)			\
 static inline unsigned int						\
 func_name(struct perf_output_handle *handle,				\
@@ -91,7 +92,7 @@ func_name(struct perf_output_handle *handle,				\
 	do {								\
 		size = min_t(unsigned long, handle->size, len);		\
 									\
-		written = memcpy_func(handle->addr, buf, size);		\
+		written = size - memcpy_func(handle->addr, buf, size);	\
 									\
 		len -= written;						\
 		handle->addr += written;				\
@@ -113,12 +114,12 @@ func_name(struct perf_output_handle *handle,				\
 static inline int memcpy_common(void *dst, const void *src, size_t n)
 {
 	memcpy(dst, src, n);
-	return n;
+	return 0;
 }
 
 DEFINE_OUTPUT_COPY(__output_copy, memcpy_common)
 
-#define MEMCPY_SKIP(dst, src, n) (n)
+#define MEMCPY_SKIP(dst, src, n) (0)
 
 DEFINE_OUTPUT_COPY(__output_skip, MEMCPY_SKIP)
 
